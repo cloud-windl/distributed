@@ -1,0 +1,10 @@
+[go]: 2026/03/07 23:27:33 [Portald] - Error retrieving students: EOF
+
+[go]: 2026/03/07 23:30:19 [Portald] - Error retrieving students: EOF
+
+[go]: 2026/03/07 23:31:50 [Portald] - Failed to parse score strconv.ParseFloat: parsing "": invalid syntax
+
+[go]: 2026/03/07 23:35:07 [Portald] - Failed to parse score strconv.ParseFloat: parsing "": invalid syntax
+
+[go]: 2026/03/07 23:45:38 [Portald] - Failed to parse score strconv.ParseFloat: parsing "": invalid syntax
+
