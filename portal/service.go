@@ -3,7 +3,6 @@ package portal
 import (
 	"bytes"
 	"distributed/grades"
-	"distributed/registry"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -38,10 +37,12 @@ func (s *Service) GetStudents() (grades.Students, error) {
 func (s *Service) GetStudentByID(id int) (grades.Student, error) {
 	var result grades.Student
 
-	serviceURL, err := registry.GetProvider(registry.GradingService)
-	if err != nil {
-		return result, err
-	}
+	serviceURL := "http://localhost:6000"
+
+	//serviceURL, err := registry.GetProvider(registry.GradingService)
+	//if err != nil {
+	//	return result, err
+	//}
 
 	res, err := http.Get(fmt.Sprintf("%v/students/%v", serviceURL, id))
 	if err != nil {
@@ -59,10 +60,12 @@ func (s *Service) AddGrade(id int, grade grades.Grade) error {
 		return err
 	}
 
-	serviceURL, err := registry.GetProvider(registry.GradingService)
-	if err != nil {
-		return err
-	}
+	serviceURL := "http://localhost:6000"
+
+	//serviceURL, err := registry.GetProvider(registry.GradingService)
+	//if err != nil {
+	//	return err
+	//}
 
 	res, err := http.Post(fmt.Sprintf("%v/students/%v/grades", serviceURL, id), "application/json", bytes.NewBuffer(data))
 	if err != nil {

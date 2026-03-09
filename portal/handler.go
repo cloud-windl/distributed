@@ -53,7 +53,7 @@ func (h *Handler) AddGrade(c *gin.Context) {
 		return
 	}
 
-	score, err := strconv.ParseFloat(c.PostForm("score"), 32)
+	score, err := strconv.ParseFloat(c.PostForm("Score"), 32)
 	if err != nil {
 		c.Status(http.StatusBadRequest)
 		return
@@ -68,5 +68,5 @@ func (h *Handler) AddGrade(c *gin.Context) {
 		return
 	}
 
-	c.Redirect(http.StatusTemporaryRedirect, fmt.Sprintf("/students/%v", id))
+	c.Redirect(http.StatusSeeOther, fmt.Sprintf("/students/%v", id))
 }

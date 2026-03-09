@@ -1,6 +1,7 @@
 package grades
 
 import (
+	"distributed/pkg/response"
 	"net/http"
 	"strconv"
 
@@ -18,39 +19,39 @@ func NewHandler() *Handler {
 }
 
 func (h *Handler) GetAllStudents(c *gin.Context) {
-	c.JSON(http.StatusOK, h.service.GetAllStudents())
+	response.OK(c, h.service.GetAllStudents())
 }
 
 func (h *Handler) GetStudentByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "invalid id"})
+		response.Error(c, http.StatusNotFound, "invalid id")
 		return
 	}
 	student, err := h.service.GetStudentByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		response.Error(c, http.StatusNotFound, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, student)
+	response.OK(c, student)
 }
 
 func (h *Handler) AddGrade(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "invalid id"})
+		response.Error(c, http.StatusNotFound, "invalid id")
 		return
 	}
 	var grade Grade
 	if err = c.ShouldBindJSON(&grade); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	err = h.service.AddGrade(id, grade)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
