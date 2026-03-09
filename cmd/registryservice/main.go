@@ -12,7 +12,7 @@ func main() {
 	r := gin.Default()
 	registry.RegisterRoutes(r)
 
-	if err := r.Run(":8080"); err != nil {
+	if err := r.Run(":3000"); err != nil {
 		panic(err)
 	}
 }

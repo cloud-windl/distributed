@@ -54,5 +54,5 @@ func (h *Handler) AddGrade(c *gin.Context) {
 		return
 	}
 
-	c.Status(http.StatusOK)
+	c.Status(http.StatusCreated)
 }

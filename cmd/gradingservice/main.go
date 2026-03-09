@@ -9,7 +9,7 @@ import (
 func main() {
 	r := gin.Default()
 	grades.RegisterRoutes(r)
-	if err := r.Run(); err != nil {
+	if err := r.Run(":6000"); err != nil {
 		panic(err)
 	}
 }

@@ -18,10 +18,12 @@ func NewService() *Service {
 func (s *Service) GetStudents() (grades.Students, error) {
 	var result grades.Students
 
-	serviceURL, err := registry.GetProvider(registry.GradingService)
-	if err != nil {
-		return nil, err
-	}
+	//serviceURL, err := registry.GetProvider(registry.GradingService)
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	serviceURL := "http://localhost:6000"
 
 	res, err := http.Get(serviceURL + "/students")
 	if err != nil {

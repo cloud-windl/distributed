@@ -8,7 +8,7 @@ import (
 
 func main() {
 	r := gin.Default()
-	r.LoadHTMLGlob("portal/*")
+	r.LoadHTMLGlob("portal/*.html")
 
 	portal.RegisterRoutes(r)
 

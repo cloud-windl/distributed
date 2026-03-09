@@ -7,7 +7,7 @@ func RegisterRoutes(r *gin.Engine) {
 
 	studentsRoutes := r.Group("/students")
 	{
-		studentsRoutes.GET("/", h.GetAllStudents)
+		studentsRoutes.GET("", h.GetAllStudents)
 		studentsRoutes.GET("/:id", h.GetStudentByID)
 		studentsRoutes.POST("/:id/grades", h.AddGrade)
 	}
