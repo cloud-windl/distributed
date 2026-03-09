@@ -2,6 +2,8 @@ package main
 
 import (
 	"distributed/log"
+	"distributed/pkg/config"
+	"distributed/pkg/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -9,10 +11,16 @@ import (
 func main() {
 	log.Run("./distributed.log")
 
-	r := gin.Default()
+	r := gin.New()
+
+	r.Use(gin.Logger())
+	r.Use(gin.Recovery())
+	r.Use(middleware.RequestID())
 	log.RegisterRoutes(r)
 
-	if err := r.Run(":4000"); err != nil {
+	port := config.GetEnv("PORT", "4000")
+
+	if err := r.Run(":" + port); err != nil {
 		panic(err)
 	}
 }

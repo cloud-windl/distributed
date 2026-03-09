@@ -2,14 +2,23 @@ package main
 
 import (
 	"distributed/grades"
+	"distributed/pkg/config"
+	"distributed/pkg/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	r := gin.Default()
+	r := gin.New()
+
+	r.Use(gin.Logger())
+	r.Use(gin.Recovery())
+	r.Use(middleware.RequestID())
 	grades.RegisterRoutes(r)
-	if err := r.Run(":6000"); err != nil {
+
+	port := config.GetEnv("PORT", "6000")
+
+	if err := r.Run(":" + port); err != nil {
 		panic(err)
 	}
 }

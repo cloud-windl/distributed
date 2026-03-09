@@ -45,13 +45,13 @@ func (h *Handler) AddGrade(c *gin.Context) {
 	}
 	var grade Grade
 	if err = c.ShouldBindJSON(&grade); err != nil {
-		response.Error(c, http.StatusBadRequest, err.Error())
+		response.Error(c, 4001, err.Error())
 		return
 	}
 
 	err = h.service.AddGrade(id, grade)
 	if err != nil {
-		response.Error(c, http.StatusBadRequest, err.Error())
+		response.Error(c, 4001, err.Error())
 		return
 	}
 

@@ -1,18 +1,26 @@
 package main
 
 import (
+	"distributed/pkg/config"
+	"distributed/pkg/middleware"
 	"distributed/portal"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	r := gin.Default()
-	r.LoadHTMLGlob("portal/*.html")
+	r := gin.New()
 
+	r.Use(gin.Logger())
+	r.Use(gin.Recovery())
+	r.Use(middleware.RequestID())
 	portal.RegisterRoutes(r)
 
-	if err := r.Run(":8000"); err != nil {
+	r.LoadHTMLGlob("portal/*.html")
+
+	port := config.GetEnv("PORT", "4000")
+
+	if err := r.Run(":" + port); err != nil {
 		panic(err)
 	}
 }
