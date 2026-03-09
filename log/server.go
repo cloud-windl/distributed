@@ -1,9 +1,7 @@
 package log
 
 import (
-	"io/ioutil"
 	stlog "log"
-	"net/http"
 	"os"
 )
 
@@ -22,23 +20,6 @@ func (fl fileLog) Write(data []byte) (n int, err error) {
 
 func Run(destination string) {
 	log = stlog.New(fileLog(destination), "[go]: ", stlog.LstdFlags)
-}
-
-func RegisterHandlers() {
-	http.HandleFunc("/log", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodPost:
-			msg, err := ioutil.ReadAll(r.Body)
-			if err != nil || len(msg) == 0 {
-				w.WriteHeader(http.StatusBadRequest)
-				return
-			}
-			write(string(msg))
-		default:
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			return
-		}
-	})
 }
 
 func write(msg string) {
