@@ -1,47 +1,54 @@
 package main
 
 import (
-	"context"
-	"distributed/log"
 	"distributed/portal"
-	"distributed/registry"
-	"distributed/service"
-	"fmt"
-	stlog "log"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	err := portal.InmportTemplates()
-	if err != nil {
-		stlog.Fatal(err)
-	}
-	host, port := "localhost", "5000"
-	serviceAddress := fmt.Sprintf("http://%s:%s", host, port)
+	r := gin.Default()
+	r.LoadHTMLGlob("portal/*")
 
-	r := registry.Registration{
-		ServiceName: registry.PortalService,
-		ServiceURL:  serviceAddress,
-		RequiredServices: []registry.ServiceName{
-			registry.LogService,
-			registry.GradingService,
-		},
-		ServiceUpdateURL: serviceAddress + "/services",
-		HeartBeatURL:     serviceAddress + "/heartbeat",
-	}
+	portal.RegisterRoutes(r)
 
-	ctx, err := service.Start(
-		context.Background(),
-		host,
-		port,
-		r,
-		portal.RegisterHandlers,
-	)
-	if err != nil {
-		stlog.Fatal(err)
+	if err := r.Run(":8000"); err != nil {
+		panic(err)
 	}
-	if logProvider, err := registry.GetProvider(registry.LogService); err == nil {
-		log.SetClientLogger(logProvider, r.ServiceName)
-	}
-	<-ctx.Done()
-	fmt.Println("Shutting down portal")
 }
+
+//func main() {
+//	err := portal.InmportTemplates()
+//	if err != nil {
+//		stlog.Fatal(err)
+//	}
+//	host, port := "localhost", "5000"
+//	serviceAddress := fmt.Sprintf("http://%s:%s", host, port)
+//
+//	r := registry.Registration{
+//		ServiceName: registry.PortalService,
+//		ServiceURL:  serviceAddress,
+//		RequiredServices: []registry.ServiceName{
+//			registry.LogService,
+//			registry.GradingService,
+//		},
+//		ServiceUpdateURL: serviceAddress + "/services",
+//		HeartBeatURL:     serviceAddress + "/heartbeat",
+//	}
+//
+//	ctx, err := service.Start(
+//		context.Background(),
+//		host,
+//		port,
+//		r,
+//		portal.RegisterHandlers,
+//	)
+//	if err != nil {
+//		stlog.Fatal(err)
+//	}
+//	if logProvider, err := registry.GetProvider(registry.LogService); err == nil {
+//		log.SetClientLogger(logProvider, r.ServiceName)
+//	}
+//	<-ctx.Done()
+//	fmt.Println("Shutting down portal")
+//}
