@@ -18,7 +18,7 @@ func main() {
 
 	r.LoadHTMLGlob("portal/*.html")
 
-	port := config.GetEnv("PORT", "4000")
+	port := config.GetEnv("PORT", "5000")
 
 	if err := r.Run(":" + port); err != nil {
 		panic(err)

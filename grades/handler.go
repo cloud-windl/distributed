@@ -9,7 +9,7 @@ import (
 )
 
 type Handler struct {
-	service *Service
+	service StudentService
 }
 
 func NewHandler() *Handler {
@@ -25,12 +25,12 @@ func (h *Handler) GetAllStudents(c *gin.Context) {
 func (h *Handler) GetStudentByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		response.Error(c, http.StatusNotFound, "invalid id")
+		response.Error(c, 4001, "invalid id")
 		return
 	}
 	student, err := h.service.GetStudentByID(id)
 	if err != nil {
-		response.Error(c, http.StatusNotFound, err.Error())
+		response.Error(c, 4004, err.Error())
 		return
 	}
 
@@ -40,18 +40,18 @@ func (h *Handler) GetStudentByID(c *gin.Context) {
 func (h *Handler) AddGrade(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		response.Error(c, http.StatusNotFound, "invalid id")
+		response.Error(c, 4001, "invalid id")
 		return
 	}
 	var grade Grade
 	if err = c.ShouldBindJSON(&grade); err != nil {
-		response.Error(c, 4001, err.Error())
+		response.Error(c, 4002, err.Error())
 		return
 	}
 
 	err = h.service.AddGrade(id, grade)
 	if err != nil {
-		response.Error(c, 4001, err.Error())
+		response.Error(c, 4003, err.Error())
 		return
 	}
 
