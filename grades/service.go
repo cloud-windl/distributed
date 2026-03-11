@@ -9,8 +9,10 @@ type Service struct {
 	repo StudentRepo
 }
 
-func NewService() StudentService {
-	return &Service{}
+func NewService(repo StudentRepo) StudentService {
+	return &Service{
+		repo: repo,
+	}
 }
 
 func (s *Service) GetAllStudents() Students {

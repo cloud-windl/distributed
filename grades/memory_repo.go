@@ -2,7 +2,7 @@ package grades
 
 type MemoryStudentRepo struct{}
 
-func NewMemoryStudentRepo() *MemoryStudentRepo {
+func NewMemoryStudentRepo() StudentRepo {
 	return &MemoryStudentRepo{}
 }
 

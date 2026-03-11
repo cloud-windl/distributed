@@ -2,8 +2,8 @@ package grades
 
 import "github.com/gin-gonic/gin"
 
-func RegisterRoutes(r *gin.Engine) {
-	h := NewHandler()
+func RegisterRoutes(r *gin.Engine, service StudentService) {
+	h := NewHandler(service)
 
 	studentsRoutes := r.Group("/students")
 	{

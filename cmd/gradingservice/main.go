@@ -3,6 +3,7 @@ package main
 import (
 	"distributed/grades"
 	"distributed/pkg/config"
+	"distributed/pkg/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,8 +13,22 @@ func main() {
 
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
-	//r.Use(middleware.RequestID())
-	grades.RegisterRoutes(r)
+	r.Use(middleware.RequestID())
+
+	//mysqlDB, err := db.NewMySQL()
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//_ = mysqlDB.AutoMigrate(&grades.StudentModel{}, &grades.GradeModel{})
+	//
+	//repo := grades.NewMySQLStudentRepo(mysqlDB)
+	//service := grades.NewService(repo)
+	//grades.RegisterRoutes(r, service)
+
+	repo := grades.NewMemoryStudentRepo()
+	service := grades.NewService(repo)
+	grades.RegisterRoutes(r, service)
 
 	port := config.GetEnv("GRADES_PORT", "6000")
 
