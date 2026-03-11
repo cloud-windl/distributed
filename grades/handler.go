@@ -1,8 +1,8 @@
 package grades
 
 import (
+	"distributed/cmd/errno"
 	"distributed/pkg/response"
-	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -25,12 +25,12 @@ func (h *Handler) GetAllStudents(c *gin.Context) {
 func (h *Handler) GetStudentByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		response.Error(c, 4001, "invalid id")
+		response.Error(c, errno.CodeInvalidStudentID, "invalid id")
 		return
 	}
 	student, err := h.service.GetStudentByID(id)
 	if err != nil {
-		response.Error(c, 4004, err.Error())
+		response.Error(c, errno.CodeStudentNotFound, err.Error())
 		return
 	}
 
@@ -40,20 +40,20 @@ func (h *Handler) GetStudentByID(c *gin.Context) {
 func (h *Handler) AddGrade(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		response.Error(c, 4001, "invalid id")
+		response.Error(c, errno.CodeInvalidStudentID, "invalid id")
 		return
 	}
 	var grade Grade
 	if err = c.ShouldBindJSON(&grade); err != nil {
-		response.Error(c, 4002, err.Error())
+		response.Error(c, errno.CodeInvalidGradeBoyd, err.Error())
 		return
 	}
 
 	err = h.service.AddGrade(id, grade)
 	if err != nil {
-		response.Error(c, 4003, err.Error())
+		response.Error(c, errno.CodeAddGradeFailed, err.Error())
 		return
 	}
 
-	c.Status(http.StatusCreated)
+	response.OK(c, gin.H{"message": "grade added successfully"})
 }

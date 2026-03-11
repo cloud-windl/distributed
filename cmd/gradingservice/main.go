@@ -15,7 +15,7 @@ func main() {
 	//r.Use(middleware.RequestID())
 	grades.RegisterRoutes(r)
 
-	port := config.GetEnv("PORT", "6000")
+	port := config.GetEnv("GRADES_PORT", "6000")
 
 	if err := r.Run(":" + port); err != nil {
 		panic(err)

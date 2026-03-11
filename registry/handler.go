@@ -1,7 +1,9 @@
 package registry
 
 import (
-	"net/http"
+	"distributed/cmd/errno"
+	"distributed/pkg/response"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,26 +21,36 @@ func NewHandler() *Handler {
 func (h *Handler) RegisterService(c *gin.Context) {
 	var req Registration
 	if err := c.ShouldBind(&req); err != nil {
-		c.Status(http.StatusBadRequest)
+		response.Error(c, errno.CodeInvalidRegistryReq, "invalid registration request")
 		return
 	}
 	err := h.service.Add(req)
 	if err != nil {
-		c.Status(http.StatusBadRequest)
+		response.Error(c, errno.CodeRegisterFailed, err.Error())
 		return
 	}
-	c.Status(http.StatusOK)
+	response.OK(c, gin.H{
+		"message": "service registered successfully",
+	})
 }
 
 func (h *Handler) DeregisterService(c *gin.Context) {
 	body, err := c.GetRawData()
 	if err != nil {
-		c.Status(http.StatusBadRequest)
+		response.Error(c, errno.CodeReadBodyFailed, "failed to read request body")
 		return
 	}
-	if err := h.service.Remove(string(body)); err != nil {
-		c.Status(http.StatusBadRequest)
+	url := strings.TrimSpace(string(body))
+	if url == "" {
+		response.Error(c, errno.CodeEmptyServiceURL, "empty service url")
 		return
 	}
-	c.Status(http.StatusOK)
+	if err := h.service.Remove(url); err != nil {
+		response.Error(c, errno.CodeDeregisterFailed, err.Error())
+		return
+	}
+
+	response.OK(c, gin.H{
+		"message": "service deregistered successfully",
+	})
 }

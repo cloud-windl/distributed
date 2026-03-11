@@ -1,8 +1,9 @@
 package log
 
 import (
+	"distributed/cmd/errno"
+	"distributed/pkg/response"
 	"io"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,11 +18,17 @@ func NewHandler() *Handler {
 
 func (h *Handler) WriteLog(c *gin.Context) {
 	msg, err := io.ReadAll(c.Request.Body)
-	if err != nil || len(msg) == 0 {
-		c.Status(http.StatusBadRequest)
+	if err != nil {
+		response.Error(c, errno.CodeLogReadBodyFailed, "failed to read request body")
 		return
 	}
 
+	if len(msg) == 0 {
+		response.Error(c, errno.CodeEmptyLogMessage, "empty log message")
+		return
+	}
 	h.service.Write(string(msg))
-	c.Status(http.StatusOK)
+	response.OK(c, gin.H{
+		"message": "log written successfully",
+	})
 }

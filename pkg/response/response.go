@@ -9,14 +9,14 @@ import (
 type Response struct {
 	Code int         `json:"code"`
 	Msg  string      `json:"msg"`
-	Data interface{} `json:"data"`
+	Data interface{} `json:"data,omitempty"`
 }
 
 // 给服务间调用时使用
 type ClientResponse struct {
 	Code int             `json:"code"`
 	Msg  string          `json:"msg"`
-	Data json.RawMessage `json:"data"`
+	Data json.RawMessage `json:"data,omitempty"`
 }
 
 func OK(c *gin.Context, data any) {

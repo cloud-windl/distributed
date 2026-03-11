@@ -5,34 +5,22 @@ type StudentService interface {
 	GetStudentByID(id int) (*Student, error)
 	AddGrade(id int, grade Grade) error
 }
-type Service struct{}
+type Service struct {
+	repo StudentRepo
+}
 
 func NewService() StudentService {
 	return &Service{}
 }
 
 func (s *Service) GetAllStudents() Students {
-	studentsMutex.Lock()
-	defer studentsMutex.Unlock()
-
-	return students
+	return s.repo.GetAll()
 }
 
 func (s *Service) GetStudentByID(id int) (*Student, error) {
-	studentsMutex.Lock()
-	defer studentsMutex.Unlock()
-	return students.GetByID(id)
+	return s.repo.GetByID(id)
 }
 
 func (s *Service) AddGrade(id int, grade Grade) error {
-	studentsMutex.Lock()
-	defer studentsMutex.Unlock()
-
-	student, err := students.GetByID(id)
-	if err != nil {
-		return err
-	}
-
-	student.Grades = append(student.Grades, grade)
-	return nil
+	return s.repo.AddGrade(id, grade)
 }
