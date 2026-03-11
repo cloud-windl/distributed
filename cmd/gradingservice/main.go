@@ -3,6 +3,7 @@ package main
 import (
 	"distributed/grades"
 	"distributed/pkg/config"
+	"distributed/pkg/db"
 	"distributed/pkg/middleware"
 
 	"github.com/gin-gonic/gin"
@@ -15,20 +16,27 @@ func main() {
 	r.Use(gin.Recovery())
 	r.Use(middleware.RequestID())
 
-	//mysqlDB, err := db.NewMySQL()
-	//if err != nil {
-	//	panic(err)
-	//}
-	//
-	//_ = mysqlDB.AutoMigrate(&grades.StudentModel{}, &grades.GradeModel{})
-	//
-	//repo := grades.NewMySQLStudentRepo(mysqlDB)
-	//service := grades.NewService(repo)
-	//grades.RegisterRoutes(r, service)
+	mysqlDB, err := db.NewMySQL()
+	if err != nil {
+		panic(err)
+	}
 
-	repo := grades.NewMemoryStudentRepo()
+	_ = mysqlDB.AutoMigrate(&grades.StudentModel{}, &grades.GradeModel{})
+
+	repo := grades.NewMySQLStudentRepo(mysqlDB)
 	service := grades.NewService(repo)
 	grades.RegisterRoutes(r, service)
+
+	var count int64
+	mysqlDB.Model(&grades.StudentModel{}).Count(&count)
+	if count == 0 {
+		mysqlDB.Create(&grades.StudentModel{FirstName: "Tom", LastName: "Jerry"})
+		mysqlDB.Create(&grades.StudentModel{FirstName: "Alice", LastName: "Smith"})
+	}
+
+	//repo := grades.NewMemoryStudentRepo()
+	//service := grades.NewService(repo)
+	//grades.RegisterRoutes(r, service)
 
 	port := config.GetEnv("GRADES_PORT", "6000")
 

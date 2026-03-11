@@ -46,6 +46,7 @@ const (
 )
 
 type Grade struct {
+	ID    int
 	Title string
 	Type  GradeType
 	Score float32

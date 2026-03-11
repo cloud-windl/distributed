@@ -1,7 +1,7 @@
 package registry
 
 import (
-	"distributed/cmd/errno"
+	"distributed/pkg/errno"
 	"distributed/pkg/response"
 	"strings"
 
