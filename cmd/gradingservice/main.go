@@ -6,10 +6,17 @@
 package main
 
 import (
+	"context"
 	"distributed/grades"
 	"distributed/pkg/config"
 	"distributed/pkg/db"
 	"distributed/pkg/middleware"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -29,26 +36,53 @@ func main() {
 		panic(err)
 	}
 
-	if err := grades.AutoMigrate(mysqlDB); err != nil {
+	repo, err := grades.InitMySQLRepo(mysqlDB)
+	if err != nil {
 		panic(err)
 	}
 
-	if err := grades.SeedStudents(mysqlDB); err != nil {
-		panic(err)
-	}
-
-	if err := grades.SeedUsers(mysqlDB); err != nil {
-		panic(err)
-	}
-
-	repo := grades.NewMySQLStudentRepo(mysqlDB)
 	service := grades.NewService(repo)
 	grades.RegisterRoutes(r, service, mysqlDB)
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	port := config.GetEnv("GRADES_PORT", "6000")
-	if err := r.Run(":" + port); err != nil {
-		panic(err)
+	addr := ":" + port
+
+	reg := grades.BuildRegistration()
+	if err := grades.RegisterToRegistry(reg); err != nil {
+		log.Printf("register to registry failed: %v", err)
+	} else {
+		log.Printf("registered service to registry: %s", reg.ServiceURL)
+	}
+
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: r,
+	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("grades service listen error: %v", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	log.Println("shutting down grades service...")
+
+	if err := grades.DeregisterFromRegistry(reg.ServiceURL); err != nil {
+		log.Printf("deregister from registry failed: %v", err)
+	} else {
+		log.Printf("deregistered service from registry: %s", reg.ServiceURL)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Printf("server shutdown error: %v", err)
 	}
 }

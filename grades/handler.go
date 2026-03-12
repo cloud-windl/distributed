@@ -1,6 +1,7 @@
 package grades
 
 import (
+	"net/http"
 	"strconv"
 
 	"distributed/dto"
@@ -317,4 +318,17 @@ func (h *Handler) DeleteGrade(c *gin.Context) {
 	}
 
 	response.OK(c, gin.H{"message": "grade deleted successfully"})
+}
+
+func (h *Handler) Health(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"status": "ok",
+	})
+}
+
+func (h *Handler) HandleRegistryUpdate(c *gin.Context) {
+	// 当前 grades 不依赖其他服务，这里先作为空实现接住 registry 的 patch
+	c.JSON(http.StatusOK, gin.H{
+		"message": "registry update received",
+	})
 }

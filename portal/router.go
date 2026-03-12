@@ -5,6 +5,9 @@ import "github.com/gin-gonic/gin"
 func RegisterRoutes(r *gin.Engine) {
 	h := NewHandler()
 
+	r.GET("/healthz", h.Health)
+	r.POST("/registry/updates", h.HandleRegistryUpdate)
+
 	r.GET("/login", h.RenderLoginPage)
 	r.POST("/login", h.Login)
 	r.GET("/logout", h.Logout)

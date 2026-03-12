@@ -2,6 +2,7 @@ package portal
 
 import (
 	"distributed/dto"
+	"distributed/registry"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -334,4 +335,33 @@ func (h *Handler) DeleteGrade(c *gin.Context) {
 	}
 
 	c.Redirect(http.StatusSeeOther, fmt.Sprintf("/students/%d", studentID))
+}
+
+func (h *Handler) Health(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"status": "ok",
+	})
+}
+
+func (h *Handler) HandleRegistryUpdate(c *gin.Context) {
+	body, err := c.GetRawData()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": 9001,
+			"msg":  "failed to read registry update body",
+		})
+		return
+	}
+
+	if err := registry.ApplyPatchBody(body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": 9002,
+			"msg":  err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "registry update received",
+	})
 }

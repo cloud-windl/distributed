@@ -13,6 +13,10 @@ func RegisterRoutes(r *gin.Engine, service StudentService, db *gorm.DB) {
 
 	r.POST("/login", authHandler.Login)
 
+	// 服务治理相关接口
+	r.GET("/healthz", h.Health)
+	r.POST("/registry/updates", h.HandleRegistryUpdate)
+
 	students := r.Group("/students")
 	{
 		students.GET("", h.GetAllStudents)

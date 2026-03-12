@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"distributed/dto"
 	"distributed/pkg/response"
+	"distributed/registry"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -17,8 +18,15 @@ func NewService() *Service {
 	return &Service{}
 }
 
+func (s *Service) gradesServiceURL() (string, error) {
+	return registry.GetProvider(registry.GradingService)
+}
+
 func (s *Service) Login(username, password string) (string, error) {
-	serviceURL := "http://localhost:6000/login"
+	serviceURL, err := s.gradesServiceURL()
+	if err != nil {
+		return "", err
+	}
 
 	body := map[string]string{
 		"username": username,
@@ -31,7 +39,7 @@ func (s *Service) Login(username, password string) (string, error) {
 	}
 
 	res, err := http.Post(
-		serviceURL,
+		serviceURL+"/login",
 		"application/json",
 		bytes.NewBuffer(data),
 	)
@@ -64,7 +72,10 @@ func (s *Service) GetStudents(page, pageSize int, keyword, token string) (dto.St
 	var resp response.ClientResponse
 	var result dto.StudentListResponse
 
-	serviceURL := "http://localhost:6000"
+	serviceURL, err := s.gradesServiceURL()
+	if err != nil {
+		return result, err
+	}
 
 	q := url.Values{}
 	q.Set("page", strconv.Itoa(page))
@@ -108,7 +119,10 @@ func (s *Service) GetStudentByID(id int, token string) (dto.Student, error) {
 	var resp response.ClientResponse
 	var result dto.Student
 
-	serviceURL := "http://localhost:6000"
+	serviceURL, err := s.gradesServiceURL()
+	if err != nil {
+		return result, err
+	}
 
 	req, err := http.NewRequest(
 		http.MethodGet,
@@ -148,7 +162,10 @@ func (s *Service) GetStudentByID(id int, token string) (dto.Student, error) {
 func (s *Service) CreateStudent(firstName, lastName, token string) error {
 	var resp response.ClientResponse
 
-	serviceURL := "http://localhost:6000"
+	serviceURL, err := s.gradesServiceURL()
+	if err != nil {
+		return err
+	}
 
 	body := map[string]string{
 		"first_name": firstName,
@@ -191,7 +208,10 @@ func (s *Service) CreateStudent(firstName, lastName, token string) error {
 func (s *Service) UpdateStudent(id int, firstName, lastName, token string) error {
 	var resp response.ClientResponse
 
-	serviceURL := "http://localhost:6000"
+	serviceURL, err := s.gradesServiceURL()
+	if err != nil {
+		return err
+	}
 
 	body := map[string]string{
 		"first_name": firstName,
@@ -234,7 +254,10 @@ func (s *Service) UpdateStudent(id int, firstName, lastName, token string) error
 func (s *Service) DeleteStudent(id int, token string) error {
 	var resp response.ClientResponse
 
-	serviceURL := "http://localhost:6000"
+	serviceURL, err := s.gradesServiceURL()
+	if err != nil {
+		return err
+	}
 
 	req, err := http.NewRequest(
 		http.MethodDelete,
@@ -266,12 +289,15 @@ func (s *Service) DeleteStudent(id int, token string) error {
 func (s *Service) AddGrade(id int, g dto.Grade, token string) error {
 	var resp response.ClientResponse
 
-	data, err := json.Marshal(g)
+	serviceURL, err := s.gradesServiceURL()
 	if err != nil {
 		return err
 	}
 
-	serviceURL := "http://localhost:6000"
+	data, err := json.Marshal(g)
+	if err != nil {
+		return err
+	}
 
 	req, err := http.NewRequest(
 		http.MethodPost,
@@ -304,7 +330,10 @@ func (s *Service) AddGrade(id int, g dto.Grade, token string) error {
 func (s *Service) UpdateGrade(id int, g dto.Grade, token string) error {
 	var resp response.ClientResponse
 
-	serviceURL := "http://localhost:6000"
+	serviceURL, err := s.gradesServiceURL()
+	if err != nil {
+		return err
+	}
 
 	data, err := json.Marshal(g)
 	if err != nil {
@@ -342,7 +371,10 @@ func (s *Service) UpdateGrade(id int, g dto.Grade, token string) error {
 func (s *Service) DeleteGrade(id int, token string) error {
 	var resp response.ClientResponse
 
-	serviceURL := "http://localhost:6000"
+	serviceURL, err := s.gradesServiceURL()
+	if err != nil {
+		return err
+	}
 
 	req, err := http.NewRequest(
 		http.MethodDelete,
