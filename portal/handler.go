@@ -19,6 +19,29 @@ func NewHandler() *Handler {
 	}
 }
 
+func (h *Handler) RenderLoginPage(c *gin.Context) {
+	c.HTML(http.StatusOK, "login.html", nil)
+}
+
+func (h *Handler) Login(c *gin.Context) {
+	username := c.PostForm("username")
+	password := c.PostForm("password")
+
+	token, err := h.service.Login(username, password)
+	if err != nil {
+		c.String(http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	c.SetCookie("token", token, 3600*24, "/", "", false, true)
+	c.Redirect(http.StatusSeeOther, "/students")
+}
+
+func (h *Handler) Logout(c *gin.Context) {
+	c.SetCookie("token", "", -1, "/", "", false, true)
+	c.Redirect(http.StatusSeeOther, "/login")
+}
+
 func (h *Handler) RedirectToStudents(c *gin.Context) {
 	c.Redirect(http.StatusPermanentRedirect, "/students")
 }
@@ -35,25 +58,28 @@ func (h *Handler) RenderStudents(c *gin.Context) {
 		pageSize = 10
 	}
 
-	studentsResp, err := h.service.GetStudents(page, pageSize, keyword)
+	token, err := c.Cookie("token")
+	isLoggedIn := err == nil && token != ""
+
+	studentsResp, err := h.service.GetStudents(page, pageSize, keyword, token)
 	if err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	data := StudentsPageData{
-		List:     studentsResp.List,
-		Total:    studentsResp.Total,
-		Page:     studentsResp.Page,
-		PageSize: studentsResp.PageSize,
-		Keyword:  keyword,
+		List:       studentsResp.List,
+		Total:      studentsResp.Total,
+		Page:       studentsResp.Page,
+		PageSize:   studentsResp.PageSize,
+		Keyword:    keyword,
+		IsLoggedIn: isLoggedIn,
 	}
 
 	if data.Page > 1 {
 		data.HasPrev = true
 		data.PrevPage = data.Page - 1
 	}
-
 	if int64(data.Page*data.PageSize) < data.Total {
 		data.HasNext = true
 		data.NextPage = data.Page + 1
@@ -69,7 +95,9 @@ func (h *Handler) RenderStudent(c *gin.Context) {
 		return
 	}
 
-	student, err := h.service.GetStudentByID(id)
+	token, _ := c.Cookie("token")
+
+	student, err := h.service.GetStudentByID(id, token)
 	if err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
@@ -96,7 +124,9 @@ func (h *Handler) CreateStudent(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.CreateStudent(firstName, lastName); err != nil {
+	token, _ := c.Cookie("token")
+
+	if err := h.service.CreateStudent(firstName, lastName, token); err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -111,7 +141,9 @@ func (h *Handler) RenderEditStudentPage(c *gin.Context) {
 		return
 	}
 
-	student, err := h.service.GetStudentByID(id)
+	token, _ := c.Cookie("token")
+
+	student, err := h.service.GetStudentByID(id, token)
 	if err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
@@ -140,7 +172,9 @@ func (h *Handler) UpdateStudent(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.UpdateStudent(id, firstName, lastName); err != nil {
+	token, _ := c.Cookie("token")
+
+	if err := h.service.UpdateStudent(id, firstName, lastName, token); err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -155,7 +189,9 @@ func (h *Handler) DeleteStudent(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.DeleteStudent(id); err != nil {
+	token, _ := c.Cookie("token")
+
+	if err := h.service.DeleteStudent(id, token); err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -182,7 +218,9 @@ func (h *Handler) AddGrade(c *gin.Context) {
 		Score: float32(score),
 	}
 
-	if err := h.service.AddGrade(id, g); err != nil {
+	token, _ := c.Cookie("token")
+
+	if err := h.service.AddGrade(id, g, token); err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -203,7 +241,9 @@ func (h *Handler) RenderEditGradePage(c *gin.Context) {
 		return
 	}
 
-	student, err := h.service.GetStudentByID(studentID)
+	token, _ := c.Cookie("token")
+
+	student, err := h.service.GetStudentByID(studentID, token)
 	if err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
@@ -257,7 +297,9 @@ func (h *Handler) UpdateGrade(c *gin.Context) {
 		Score: float32(score),
 	}
 
-	if err := h.service.UpdateGrade(gradeID, g); err != nil {
+	token, _ := c.Cookie("token")
+
+	if err := h.service.UpdateGrade(gradeID, g, token); err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -278,7 +320,9 @@ func (h *Handler) DeleteGrade(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.DeleteGrade(gradeID); err != nil {
+	token, _ := c.Cookie("token")
+
+	if err := h.service.DeleteGrade(gradeID, token); err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}

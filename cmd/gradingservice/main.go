@@ -1,7 +1,7 @@
 // @title Distributed Grades Service API
 // @version 1.0
 // @description Student and grade management service based on Gin + MySQL
-// @host localhost:6001
+// @host localhost:6000
 // @BasePath /
 package main
 
@@ -37,13 +37,17 @@ func main() {
 		panic(err)
 	}
 
+	if err := grades.SeedUsers(mysqlDB); err != nil {
+		panic(err)
+	}
+
 	repo := grades.NewMySQLStudentRepo(mysqlDB)
 	service := grades.NewService(repo)
-	grades.RegisterRoutes(r, service)
+	grades.RegisterRoutes(r, service, mysqlDB)
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	port := config.GetEnv("GRADES_PORT", "6001")
+	port := config.GetEnv("GRADES_PORT", "6000")
 	if err := r.Run(":" + port); err != nil {
 		panic(err)
 	}

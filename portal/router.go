@@ -5,20 +5,28 @@ import "github.com/gin-gonic/gin"
 func RegisterRoutes(r *gin.Engine) {
 	h := NewHandler()
 
+	r.GET("/login", h.RenderLoginPage)
+	r.POST("/login", h.Login)
+	r.GET("/logout", h.Logout)
+
 	r.GET("/", h.RedirectToStudents)
 
-	r.GET("/students", h.RenderStudents)
-	r.GET("/students/create", h.RenderCreateStudentPage)
-	r.POST("/students/create", h.CreateStudent)
+	authorized := r.Group("/")
+	authorized.Use(LoginRequired())
+	{
+		authorized.GET("/students", h.RenderStudents)
+		authorized.GET("/students/create", h.RenderCreateStudentPage)
+		authorized.POST("/students/create", h.CreateStudent)
 
-	r.GET("/students/:id", h.RenderStudent)
-	r.GET("/students/:id/edit", h.RenderEditStudentPage)
-	r.POST("/students/:id/edit", h.UpdateStudent)
-	r.POST("/students/:id/delete", h.DeleteStudent)
+		authorized.GET("/students/:id", h.RenderStudent)
+		authorized.GET("/students/:id/edit", h.RenderEditStudentPage)
+		authorized.POST("/students/:id/edit", h.UpdateStudent)
+		authorized.POST("/students/:id/delete", h.DeleteStudent)
 
-	r.POST("/students/:id/grades", h.AddGrade)
+		authorized.POST("/students/:id/grades", h.AddGrade)
 
-	r.GET("/students/:id/grades/:grade_id/edit", h.RenderEditGradePage)
-	r.POST("/students/:id/grades/:grade_id/edit", h.UpdateGrade)
-	r.POST("/students/:id/grades/:grade_id/delete", h.DeleteGrade)
+		authorized.GET("/students/:id/grades/:grade_id/edit", h.RenderEditGradePage)
+		authorized.POST("/students/:id/grades/:grade_id/edit", h.UpdateGrade)
+		authorized.POST("/students/:id/grades/:grade_id/delete", h.DeleteGrade)
+	}
 }

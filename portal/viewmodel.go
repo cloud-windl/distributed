@@ -13,4 +13,6 @@ type StudentsPageData struct {
 	HasNext  bool
 	PrevPage int
 	NextPage int
+
+	IsLoggedIn bool
 }

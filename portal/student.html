@@ -12,6 +12,16 @@
         - {{.LastName}}, {{.FirstName}}
     </h1>
 
+    <p>
+        {{if .IsLoggedIn}}
+        <a href="/students/create">Create Student</a>
+        |
+        <a href="/logout">Logout</a>
+        {{else}}
+        <a href="/login">Login</a>
+        {{end}}
+    </p>
+
     {{if gt (len .Grades) 0}}
     <table>
         <tr>

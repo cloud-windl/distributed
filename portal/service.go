@@ -17,11 +17,54 @@ func NewService() *Service {
 	return &Service{}
 }
 
-func (s *Service) GetStudents(page, pageSize int, keyword string) (dto.StudentListResponse, error) {
+func (s *Service) Login(username, password string) (string, error) {
+	serviceURL := "http://localhost:6000/login"
+
+	body := map[string]string{
+		"username": username,
+		"password": password,
+	}
+
+	data, err := json.Marshal(body)
+	if err != nil {
+		return "", err
+	}
+
+	res, err := http.Post(
+		serviceURL,
+		"application/json",
+		bytes.NewBuffer(data),
+	)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+
+	var resp response.ClientResponse
+	if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
+		return "", err
+	}
+
+	if resp.Code != 0 {
+		return "", fmt.Errorf(resp.Msg)
+	}
+
+	var result struct {
+		Token string `json:"token"`
+	}
+
+	if err := json.Unmarshal(resp.Data, &result); err != nil {
+		return "", err
+	}
+
+	return result.Token, nil
+}
+
+func (s *Service) GetStudents(page, pageSize int, keyword, token string) (dto.StudentListResponse, error) {
 	var resp response.ClientResponse
 	var result dto.StudentListResponse
 
-	serviceURL := "http://localhost:6001"
+	serviceURL := "http://localhost:6000"
 
 	q := url.Values{}
 	q.Set("page", strconv.Itoa(page))
@@ -30,7 +73,16 @@ func (s *Service) GetStudents(page, pageSize int, keyword string) (dto.StudentLi
 
 	reqURL := fmt.Sprintf("%s/students?%s", serviceURL, q.Encode())
 
-	res, err := http.Get(reqURL)
+	req, err := http.NewRequest(http.MethodGet, reqURL, nil)
+	if err != nil {
+		return result, err
+	}
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+
+	client := &http.Client{}
+	res, err := client.Do(req)
 	if err != nil {
 		return result, err
 	}
@@ -52,13 +104,26 @@ func (s *Service) GetStudents(page, pageSize int, keyword string) (dto.StudentLi
 	return result, nil
 }
 
-func (s *Service) GetStudentByID(id int) (dto.Student, error) {
+func (s *Service) GetStudentByID(id int, token string) (dto.Student, error) {
 	var resp response.ClientResponse
 	var result dto.Student
 
-	serviceURL := "http://localhost:6001"
+	serviceURL := "http://localhost:6000"
 
-	res, err := http.Get(fmt.Sprintf("%s/students/%d", serviceURL, id))
+	req, err := http.NewRequest(
+		http.MethodGet,
+		fmt.Sprintf("%s/students/%d", serviceURL, id),
+		nil,
+	)
+	if err != nil {
+		return result, err
+	}
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+
+	client := &http.Client{}
+	res, err := client.Do(req)
 	if err != nil {
 		return result, err
 	}
@@ -80,10 +145,10 @@ func (s *Service) GetStudentByID(id int) (dto.Student, error) {
 	return result, nil
 }
 
-func (s *Service) CreateStudent(firstName, lastName string) error {
+func (s *Service) CreateStudent(firstName, lastName, token string) error {
 	var resp response.ClientResponse
 
-	serviceURL := "http://localhost:6001"
+	serviceURL := "http://localhost:6000"
 
 	body := map[string]string{
 		"first_name": firstName,
@@ -95,11 +160,19 @@ func (s *Service) CreateStudent(firstName, lastName string) error {
 		return err
 	}
 
-	res, err := http.Post(
+	req, err := http.NewRequest(
+		http.MethodPost,
 		fmt.Sprintf("%s/students", serviceURL),
-		"application/json",
 		bytes.NewBuffer(data),
 	)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	client := &http.Client{}
+	res, err := client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -115,10 +188,10 @@ func (s *Service) CreateStudent(firstName, lastName string) error {
 	return nil
 }
 
-func (s *Service) UpdateStudent(id int, firstName, lastName string) error {
+func (s *Service) UpdateStudent(id int, firstName, lastName, token string) error {
 	var resp response.ClientResponse
 
-	serviceURL := "http://localhost:6001"
+	serviceURL := "http://localhost:6000"
 
 	body := map[string]string{
 		"first_name": firstName,
@@ -139,6 +212,7 @@ func (s *Service) UpdateStudent(id int, firstName, lastName string) error {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
 
 	client := &http.Client{}
 	res, err := client.Do(req)
@@ -157,10 +231,10 @@ func (s *Service) UpdateStudent(id int, firstName, lastName string) error {
 	return nil
 }
 
-func (s *Service) DeleteStudent(id int) error {
+func (s *Service) DeleteStudent(id int, token string) error {
 	var resp response.ClientResponse
 
-	serviceURL := "http://localhost:6001"
+	serviceURL := "http://localhost:6000"
 
 	req, err := http.NewRequest(
 		http.MethodDelete,
@@ -170,6 +244,7 @@ func (s *Service) DeleteStudent(id int) error {
 	if err != nil {
 		return err
 	}
+	req.Header.Set("Authorization", "Bearer "+token)
 
 	client := &http.Client{}
 	res, err := client.Do(req)
@@ -188,7 +263,7 @@ func (s *Service) DeleteStudent(id int) error {
 	return nil
 }
 
-func (s *Service) AddGrade(id int, g dto.Grade) error {
+func (s *Service) AddGrade(id int, g dto.Grade, token string) error {
 	var resp response.ClientResponse
 
 	data, err := json.Marshal(g)
@@ -196,13 +271,21 @@ func (s *Service) AddGrade(id int, g dto.Grade) error {
 		return err
 	}
 
-	serviceURL := "http://localhost:6001"
+	serviceURL := "http://localhost:6000"
 
-	res, err := http.Post(
+	req, err := http.NewRequest(
+		http.MethodPost,
 		fmt.Sprintf("%s/students/%d/grades", serviceURL, id),
-		"application/json",
 		bytes.NewBuffer(data),
 	)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	client := &http.Client{}
+	res, err := client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -218,10 +301,10 @@ func (s *Service) AddGrade(id int, g dto.Grade) error {
 	return nil
 }
 
-func (s *Service) UpdateGrade(id int, g dto.Grade) error {
+func (s *Service) UpdateGrade(id int, g dto.Grade, token string) error {
 	var resp response.ClientResponse
 
-	serviceURL := "http://localhost:6001"
+	serviceURL := "http://localhost:6000"
 
 	data, err := json.Marshal(g)
 	if err != nil {
@@ -237,6 +320,7 @@ func (s *Service) UpdateGrade(id int, g dto.Grade) error {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
 
 	client := &http.Client{}
 	res, err := client.Do(req)
@@ -255,10 +339,10 @@ func (s *Service) UpdateGrade(id int, g dto.Grade) error {
 	return nil
 }
 
-func (s *Service) DeleteGrade(id int) error {
+func (s *Service) DeleteGrade(id int, token string) error {
 	var resp response.ClientResponse
 
-	serviceURL := "http://localhost:6001"
+	serviceURL := "http://localhost:6000"
 
 	req, err := http.NewRequest(
 		http.MethodDelete,
@@ -268,6 +352,7 @@ func (s *Service) DeleteGrade(id int) error {
 	if err != nil {
 		return err
 	}
+	req.Header.Set("Authorization", "Bearer "+token)
 
 	client := &http.Client{}
 	res, err := client.Do(req)
