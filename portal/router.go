@@ -17,4 +17,8 @@ func RegisterRoutes(r *gin.Engine) {
 	r.POST("/students/:id/delete", h.DeleteStudent)
 
 	r.POST("/students/:id/grades", h.AddGrade)
+
+	r.GET("/students/:id/grades/:grade_id/edit", h.RenderEditGradePage)
+	r.POST("/students/:id/grades/:grade_id/edit", h.UpdateGrade)
+	r.POST("/students/:id/grades/:grade_id/delete", h.DeleteGrade)
 }

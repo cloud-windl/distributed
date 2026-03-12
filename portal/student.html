@@ -19,13 +19,21 @@
             <th>Type</th>
             <th>Score</th>
         </tr>
-        {{range .Grades}}
-        <tr>
-            <td>{{.Title}}</td>
-            <td>{{.Type}}</td>
-            <td>{{.Score}}</td>
-        </tr>
-        {{end}}
+        <ul>
+            {{range .Grades}}
+            <li>
+                {{.Title}} - {{.Type}} - {{.Score}}
+                |
+                <a href="/students/{{$.ID}}/grades/{{.ID}}/edit">Edit</a>
+                |
+                <form method="post" action="/students/{{$.ID}}/grades/{{.ID}}/delete" style="display:inline;">
+                    <button type="submit" onclick="return confirm('Are you sure to delete this grade?')">Delete</button>
+                </form>
+            </li>
+            {{else}}
+            <li>No grades yet</li>
+            {{end}}
+        </ul>
     </table>
     {{else}}
     <em>No grades available</em>

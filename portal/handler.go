@@ -189,3 +189,99 @@ func (h *Handler) AddGrade(c *gin.Context) {
 
 	c.Redirect(http.StatusSeeOther, fmt.Sprintf("/students/%v", id))
 }
+
+func (h *Handler) RenderEditGradePage(c *gin.Context) {
+	studentID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	gradeID, err := strconv.Atoi(c.Param("grade_id"))
+	if err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	student, err := h.service.GetStudentByID(studentID)
+	if err != nil {
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	var target dto.Grade
+	found := false
+	for _, g := range student.Grades {
+		if g.ID == gradeID {
+			target = g
+			found = true
+			break
+		}
+	}
+	if !found {
+		c.String(http.StatusNotFound, "grade not found")
+		return
+	}
+
+	c.HTML(http.StatusOK, "grade_form.html", gin.H{
+		"title":      "Edit Grade",
+		"action":     fmt.Sprintf("/students/%d/grades/%d/edit", studentID, gradeID),
+		"studentID":  studentID,
+		"grade":      target,
+		"submitText": "Update",
+	})
+}
+
+func (h *Handler) UpdateGrade(c *gin.Context) {
+	studentID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	gradeID, err := strconv.Atoi(c.Param("grade_id"))
+	if err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	score, err := strconv.ParseFloat(c.PostForm("score"), 32)
+	if err != nil {
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	g := dto.Grade{
+		Title: c.PostForm("title"),
+		Type:  c.PostForm("type"),
+		Score: float32(score),
+	}
+
+	if err := h.service.UpdateGrade(gradeID, g); err != nil {
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.Redirect(http.StatusSeeOther, fmt.Sprintf("/students/%d", studentID))
+}
+
+func (h *Handler) DeleteGrade(c *gin.Context) {
+	studentID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	gradeID, err := strconv.Atoi(c.Param("grade_id"))
+	if err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	if err := h.service.DeleteGrade(gradeID); err != nil {
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.Redirect(http.StatusSeeOther, fmt.Sprintf("/students/%d", studentID))
+}

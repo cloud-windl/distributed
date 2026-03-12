@@ -217,3 +217,71 @@ func (s *Service) AddGrade(id int, g dto.Grade) error {
 
 	return nil
 }
+
+func (s *Service) UpdateGrade(id int, g dto.Grade) error {
+	var resp response.ClientResponse
+
+	serviceURL := "http://localhost:6001"
+
+	data, err := json.Marshal(g)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(
+		http.MethodPut,
+		fmt.Sprintf("%s/grades/%d", serviceURL, id),
+		bytes.NewBuffer(data),
+	)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
+		return err
+	}
+	if resp.Code != 0 {
+		return fmt.Errorf(resp.Msg)
+	}
+
+	return nil
+}
+
+func (s *Service) DeleteGrade(id int) error {
+	var resp response.ClientResponse
+
+	serviceURL := "http://localhost:6001"
+
+	req, err := http.NewRequest(
+		http.MethodDelete,
+		fmt.Sprintf("%s/grades/%d", serviceURL, id),
+		nil,
+	)
+	if err != nil {
+		return err
+	}
+
+	client := &http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
+		return err
+	}
+	if resp.Code != 0 {
+		return fmt.Errorf(resp.Msg)
+	}
+
+	return nil
+}

@@ -135,12 +135,22 @@ func (r *MySQLStudentRepo) Update(id int, student Student) (*Student, error) {
 
 func (r *MySQLStudentRepo) Delete(id int) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
+		var student StudentModel
+		if err := tx.First(&student, id).Error; err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return fmt.Errorf("student with ID %d not found", id)
+			}
+			return err
+		}
+
 		if err := tx.Where("student_id = ?", id).Delete(&GradeModel{}).Error; err != nil {
 			return err
 		}
+
 		if err := tx.Delete(&StudentModel{}, id).Error; err != nil {
 			return err
 		}
+
 		return nil
 	})
 }
