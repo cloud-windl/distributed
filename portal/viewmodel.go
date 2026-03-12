@@ -16,3 +16,8 @@ type StudentsPageData struct {
 
 	IsLoggedIn bool
 }
+
+type StudentDetailPageData struct {
+	Student    dto.Student
+	IsLoggedIn bool
+}

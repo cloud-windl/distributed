@@ -2,82 +2,69 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student</title>
+    <title>Student Detail</title>
 </head>
-
 <body>
-    <h1>
-        <a href="/students">Grade Book</a>
-        - {{.LastName}}, {{.FirstName}}
-    </h1>
+<h1>{{.Student.LastName}}, {{.Student.FirstName}}</h1>
 
-    <p>
-        {{if .IsLoggedIn}}
-        <a href="/students/create">Create Student</a>
-        |
-        <a href="/logout">Logout</a>
-        {{else}}
-        <a href="/login">Login</a>
-        {{end}}
-    </p>
-
-    {{if gt (len .Grades) 0}}
-    <table>
-        <tr>
-            <th>Title</th>
-            <th>Type</th>
-            <th>Score</th>
-        </tr>
-        <ul>
-            {{range .Grades}}
-            <li>
-                {{.Title}} - {{.Type}} - {{.Score}}
-                |
-                <a href="/students/{{$.ID}}/grades/{{.ID}}/edit">Edit</a>
-                |
-                <form method="post" action="/students/{{$.ID}}/grades/{{.ID}}/delete" style="display:inline;">
-                    <button type="submit" onclick="return confirm('Are you sure to delete this grade?')">Delete</button>
-                </form>
-            </li>
-            {{else}}
-            <li>No grades yet</li>
-            {{end}}
-        </ul>
-    </table>
+<p>
+    <a href="/students">Back to Students</a>
+    {{if .IsLoggedIn}}
+    | <a href="/logout">Logout</a>
     {{else}}
-    <em>No grades available</em>
+    | <a href="/login">Login</a>
     {{end}}
+</p>
 
-    <fieldset>
-        <legend>Add a Grade</legend>
-        <form action="/students/{{.ID}}/grades" method="POST">
-            <table>
-                <tr>
-                    <td>Title</td>
-                    <td>
-                        <input type="text" name="Title">
-                    </td>
-                </tr>
-                <tr>
-                    <td>Type</td>
-                    <td>
-                        <select name="Type" id="Type">
-                            <option value = "Test">Test</option>
-                            <option value = "Quiz">Quiz</option>
-                            <option value = "Homework">Homework</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Score</td>
-                    <td>
-                        <input type="number" min="0" max="100" step="1" name="Score">
-                    </td>
-                </tr>
-            </table>
-            <button type="submit">Submit</button>
+<h2>Grades</h2>
+
+{{if gt (len .Student.Grades) 0}}
+<ul>
+    {{range .Student.Grades}}
+    <li>
+        {{.Title}} - {{.Type}} - {{.Score}}
+        {{if $.IsLoggedIn}}
+        |
+        <a href="/students/{{$.Student.ID}}/grades/{{.ID}}/edit">Edit</a>
+        |
+        <form method="post" action="/students/{{$.Student.ID}}/grades/{{.ID}}/delete" style="display:inline;">
+            <button type="submit" onclick="return confirm('Are you sure to delete this grade?')">Delete</button>
         </form>
-    </fieldset>
+        {{end}}
+    </li>
+    {{end}}
+</ul>
+{{else}}
+<p>No grades yet</p>
+{{end}}
+
+{{if .IsLoggedIn}}
+<h2>Add a Grade</h2>
+<form method="post" action="/students/{{.Student.ID}}/grades">
+    <div>
+        <label>Title:</label>
+        <input type="text" name="Title">
+    </div>
+
+    <div style="margin-top: 10px;">
+        <label>Type:</label>
+        <select name="Type">
+            <option value="Test">Test</option>
+            <option value="Quiz">Quiz</option>
+            <option value="Homework">Homework</option>
+            <option value="Exam">Exam</option>
+        </select>
+    </div>
+
+    <div style="margin-top: 10px;">
+        <label>Score:</label>
+        <input type="text" name="Score">
+    </div>
+
+    <div style="margin-top: 15px;">
+        <button type="submit">Submit</button>
+    </div>
+</form>
+{{end}}
 </body>
 </html>

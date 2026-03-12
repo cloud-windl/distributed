@@ -1,6 +1,10 @@
 package grades
 
-import "gorm.io/gorm"
+import (
+	"distributed/pkg/password"
+
+	"gorm.io/gorm"
+)
 
 func SeedStudents(db *gorm.DB) error {
 	var count int64
@@ -28,15 +32,24 @@ func SeedUsers(db *gorm.DB) error {
 		return err
 	}
 
-	if count == 0 {
-		users := []UserModel{
-			{Username: "admin", Password: "123456", Role: "admin"},
-			{Username: "teacher", Password: "123456", Role: "teacher"},
-		}
-		if err := db.Create(&users).Error; err != nil {
-			return err
-		}
+	if count > 0 {
+		return nil
 	}
 
-	return nil
+	adminPassword, err := password.HashPassword("123456")
+	if err != nil {
+		return err
+	}
+
+	teacherPassword, err := password.HashPassword("123456")
+	if err != nil {
+		return err
+	}
+
+	users := []UserModel{
+		{Username: "admin", Password: adminPassword, Role: "admin"},
+		{Username: "teacher", Password: teacherPassword, Role: "teacher"},
+	}
+
+	return db.Create(&users).Error
 }

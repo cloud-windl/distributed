@@ -95,7 +95,8 @@ func (h *Handler) RenderStudent(c *gin.Context) {
 		return
 	}
 
-	token, _ := c.Cookie("token")
+	token, err := c.Cookie("token")
+	isLoggedIn := err == nil && token != ""
 
 	student, err := h.service.GetStudentByID(id, token)
 	if err != nil {
@@ -103,7 +104,12 @@ func (h *Handler) RenderStudent(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "student.html", student)
+	data := StudentDetailPageData{
+		Student:    student,
+		IsLoggedIn: isLoggedIn,
+	}
+
+	c.HTML(http.StatusOK, "student.html", data)
 }
 
 func (h *Handler) RenderCreateStudentPage(c *gin.Context) {
