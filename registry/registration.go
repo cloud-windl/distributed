@@ -5,7 +5,7 @@ type ServiceName string
 type Registration struct {
 	ServiceName      ServiceName
 	ServiceURL       string
-	RequiredServices []ServiceName //此服务的依赖服务，比如grades需要log
+	RequiredServices []ServiceName // 此服务依赖的服务
 	ServiceUpdateURL string
 	HeartBeatURL     string
 }
@@ -13,7 +13,7 @@ type Registration struct {
 const (
 	LogService     = ServiceName("LogService")
 	GradingService = ServiceName("GradingService")
-	PortalService  = ServiceName("Portald")
+	PortalService  = ServiceName("PortalService")
 )
 
 type patchEntry struct {

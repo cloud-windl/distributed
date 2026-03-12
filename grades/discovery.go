@@ -11,13 +11,14 @@ import (
 )
 
 func BuildRegistration() registry.Registration {
-	//registryBase := config.GetEnv("REGISTRY_URL", "http://localhost:3000")
 	publicURL := config.GetEnv("GRADES_PUBLIC_URL", "http://localhost:6000")
 
 	return registry.Registration{
-		ServiceName:      registry.GradingService,
-		ServiceURL:       publicURL,
-		RequiredServices: []registry.ServiceName{},
+		ServiceName: registry.GradingService,
+		ServiceURL:  publicURL,
+		RequiredServices: []registry.ServiceName{
+			registry.LogService,
+		},
 		ServiceUpdateURL: publicURL + "/registry/updates",
 		HeartBeatURL:     publicURL + "/healthz",
 	}

@@ -1,4 +1,4 @@
-package portal
+package log
 
 import (
 	"bytes"
@@ -11,15 +11,12 @@ import (
 )
 
 func BuildRegistration() registry.Registration {
-	publicURL := config.GetEnv("PORTAL_PUBLIC_URL", "http://localhost:5000")
+	publicURL := config.GetEnv("LOG_PUBLIC_URL", "http://localhost:4000")
 
 	return registry.Registration{
-		ServiceName: registry.PortalService,
-		ServiceURL:  publicURL,
-		RequiredServices: []registry.ServiceName{
-			registry.GradingService,
-			registry.LogService,
-		},
+		ServiceName:      registry.LogService,
+		ServiceURL:       publicURL,
+		RequiredServices: []registry.ServiceName{},
 		ServiceUpdateURL: publicURL + "/registry/updates",
 		HeartBeatURL:     publicURL + "/healthz",
 	}

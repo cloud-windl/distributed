@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	mylog "distributed/log"
 	"distributed/pkg/config"
 	"distributed/pkg/middleware"
 	"distributed/portal"
+	"distributed/registry"
 	"log"
 	"net/http"
 	"os"
@@ -33,6 +35,20 @@ func main() {
 	} else {
 		log.Printf("portal registered to registry: %s", reg.ServiceURL)
 	}
+
+	go func() {
+		for i := 0; i < 10; i++ {
+			logProvider, err := registry.GetProvider(registry.LogService)
+			if err == nil {
+				mylog.SetClientLogger(logProvider, registry.PortalService)
+				log.Println("portal connected to log service")
+				return
+			}
+			log.Printf("portal waiting for log service... attempt=%d err=%v", i+1, err)
+			time.Sleep(1 * time.Second)
+		}
+		log.Println("portal could not connect to log service after retries")
+	}()
 
 	srv := &http.Server{
 		Addr:    addr,
