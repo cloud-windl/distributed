@@ -69,3 +69,13 @@ type UpdateGradeRequestDoc struct {
 	Type  string  `json:"type" example:"Exam"`
 	Score float32 `json:"score" example:"98"`
 }
+
+type CreateStudentRequest struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+}
+
+type UpdateStudentRequest struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+}

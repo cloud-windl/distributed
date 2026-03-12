@@ -86,10 +86,15 @@ func (h *Handler) GetStudentByID(c *gin.Context) {
 // @Failure 500 {object} ErrorResponseDoc
 // @Router /students [post]
 func (h *Handler) CreateStudent(c *gin.Context) {
-	var student Student
-	if err := c.ShouldBindJSON(&student); err != nil {
+	var req CreateStudentRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		response.Error(c, errno.CodeInvalidStudentBody, err.Error())
 		return
+	}
+
+	student := Student{
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
 	}
 
 	res, err := h.service.CreateStudent(student)
@@ -121,10 +126,15 @@ func (h *Handler) UpdateStudent(c *gin.Context) {
 		return
 	}
 
-	var student Student
-	if err := c.ShouldBindJSON(&student); err != nil {
+	var req UpdateStudentRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		response.Error(c, errno.CodeInvalidStudentBody, err.Error())
 		return
+	}
+
+	student := Student{
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
 	}
 
 	res, err := h.service.UpdateStudent(id, student)

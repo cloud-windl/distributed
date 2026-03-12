@@ -6,10 +6,10 @@ import (
 )
 
 type Student struct {
-	ID        int
-	FirstName string
-	LastName  string
-	Grades    []Grade
+	ID        int     `json:"id"`
+	FirstName string  `json:"first_name"`
+	LastName  string  `json:"last_name"`
+	Grades    []Grade `json:"grades,omitempty"`
 }
 
 func (s Student) Average() float32 {
@@ -46,8 +46,8 @@ const (
 )
 
 type Grade struct {
-	ID    int
-	Title string
-	Type  GradeType
-	Score float32
+	ID    int       `json:"id"`
+	Title string    `json:"title"`
+	Type  GradeType `json:"type"`
+	Score float32   `json:"score"`
 }

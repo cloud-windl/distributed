@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{.title}}</title>
+</head>
+<body>
+<h1>{{.title}}</h1>
+
+<form method="post" action="{{.action}}">
+    <div>
+        <label>First Name:</label>
+        <input type="text" name="first_name" value="{{.student.FirstName}}">
+    </div>
+
+    <div style="margin-top: 10px;">
+        <label>Last Name:</label>
+        <input type="text" name="last_name" value="{{.student.LastName}}">
+    </div>
+
+    <div style="margin-top: 15px;">
+        <button type="submit">{{.submitText}}</button>
+        <a href="/students" style="margin-left: 10px;">Back</a>
+    </div>
+</form>
+</body>
+</html>

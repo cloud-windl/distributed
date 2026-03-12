@@ -2,31 +2,54 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name = "viewport" content="width=device-width, initial-scale=1.0">
     <title>Students</title>
 </head>
-
 <body>
-    <h1>Grade Book</h1>
-    {{if len .}}
-    <table>
-        <tr>
-            <th>Name</th>
-            <th>Average [%]</th>
-        </tr>
-        {{range .}}
-        <tr>
-            <td>
-                <a href = "/students/{{.ID}}">{{.LastName}},{{.FirstName}}</a>
-            </td>
-            <td>
-                {{printf "%.1f%%" .Average}}
-            </td>
-        </tr>
-        {{end}}
-    </table>
+<h1>Students</h1>
+
+<p>
+    <a href="/students/create">Create Student</a>
+</p>
+
+<form method="get" action="/students">
+    <input type="text" name="keyword" placeholder="Search by name" value="{{.Keyword}}">
+    <input type="hidden" name="page" value="1">
+    <input type="hidden" name="page_size" value="{{.PageSize}}">
+    <button type="submit">Search</button>
+</form>
+
+<p>
+    Total: {{.Total}} |
+    Page: {{.Page}} |
+    Page Size: {{.PageSize}}
+</p>
+
+<ul>
+    {{range .List}}
+    <li>
+        <a href="/students/{{.ID}}">
+            {{.FirstName}} {{.LastName}}
+        </a>
+        |
+        <a href="/students/{{.ID}}/edit">Edit</a>
+        |
+        <form method="post" action="/students/{{.ID}}/delete" style="display:inline;">
+            <button type="submit" onclick="return confirm('Are you sure to delete this student?')">Delete</button>
+        </form>
+    </li>
     {{else}}
-    <em>NO students found</em>
+    <li>No students found</li>
     {{end}}
+</ul>
+
+<div style="margin-top: 20px;">
+    {{if .HasPrev}}
+    <a href="/students?page={{.PrevPage}}&page_size={{.PageSize}}&keyword={{.Keyword}}">Previous</a>
+    {{end}}
+
+    {{if .HasNext}}
+    <a style="margin-left: 12px;" href="/students?page={{.NextPage}}&page_size={{.PageSize}}&keyword={{.Keyword}}">Next</a>
+    {{end}}
+</div>
 </body>
 </html>
