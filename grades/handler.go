@@ -1,9 +1,11 @@
 package grades
 
 import (
+	"strconv"
+
+	"distributed/dto"
 	"distributed/pkg/errno"
 	"distributed/pkg/response"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,9 +15,7 @@ type Handler struct {
 }
 
 func NewHandler(service StudentService) *Handler {
-	return &Handler{
-		service: service,
-	}
+	return &Handler{service: service}
 }
 
 func (h *Handler) GetAllStudents(c *gin.Context) {
@@ -29,11 +29,11 @@ func (h *Handler) GetAllStudents(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, gin.H{
-		"list":      students,
-		"total":     total,
-		"page":      page,
-		"page_size": pageSize,
+	response.OK(c, dto.StudentListResponse{
+		List:     toStudentDTOList(students),
+		Total:    total,
+		Page:     page,
+		PageSize: pageSize,
 	})
 }
 
@@ -50,7 +50,7 @@ func (h *Handler) GetStudentByID(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, student)
+	response.OK(c, toStudentDTO(student))
 }
 
 func (h *Handler) CreateStudent(c *gin.Context) {
@@ -60,13 +60,13 @@ func (h *Handler) CreateStudent(c *gin.Context) {
 		return
 	}
 
-	res, err := h.service.CreateStudent(&student)
+	res, err := h.service.CreateStudent(student)
 	if err != nil {
 		response.Error(c, errno.CodeCreateStudentFailed, err.Error())
 		return
 	}
 
-	response.OK(c, res)
+	response.OK(c, toStudentDTO(res))
 }
 
 func (h *Handler) UpdateStudent(c *gin.Context) {
@@ -82,13 +82,13 @@ func (h *Handler) UpdateStudent(c *gin.Context) {
 		return
 	}
 
-	res, err := h.service.UpdateStudent(id, &student)
+	res, err := h.service.UpdateStudent(id, student)
 	if err != nil {
 		response.Error(c, errno.CodeUpdateStudentFailed, err.Error())
 		return
 	}
 
-	response.OK(c, res)
+	response.OK(c, toStudentDTO(res))
 }
 
 func (h *Handler) DeleteStudent(c *gin.Context) {
@@ -119,7 +119,7 @@ func (h *Handler) GetGradesByStudentID(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, grades)
+	response.OK(c, toGradeDTOList(grades))
 }
 
 func (h *Handler) AddGrade(c *gin.Context) {
@@ -156,7 +156,7 @@ func (h *Handler) GetGradeByID(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, grade)
+	response.OK(c, toGradeDTO(grade))
 }
 
 func (h *Handler) UpdateGrade(c *gin.Context) {
@@ -178,7 +178,7 @@ func (h *Handler) UpdateGrade(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, res)
+	response.OK(c, toGradeDTO(res))
 }
 
 func (h *Handler) DeleteGrade(c *gin.Context) {

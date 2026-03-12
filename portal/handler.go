@@ -1,7 +1,7 @@
 package portal
 
 import (
-	"distributed/grades"
+	"distributed/dto"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -15,7 +15,8 @@ type Handler struct {
 
 func NewHandler() *Handler {
 	return &Handler{
-		service: NewService()}
+		service: NewService(),
+	}
 }
 
 func (h *Handler) RedirectToStudents(c *gin.Context) {
@@ -23,18 +24,25 @@ func (h *Handler) RedirectToStudents(c *gin.Context) {
 }
 
 func (h *Handler) RenderStudents(c *gin.Context) {
-	students, err := h.service.GetStudents()
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+	keyword := c.Query("keyword")
+
+	studentsResp, err := h.service.GetStudents(page, pageSize, keyword)
 	if err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
-	c.HTML(http.StatusOK, "students.html", students)
+
+	// 如果你当前 students.html 模板原本就是直接 range 一个切片
+	// 那这里传 studentsResp.List 最稳
+	c.HTML(http.StatusOK, "students.html", studentsResp.List)
 }
 
 func (h *Handler) RenderStudent(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.Status(http.StatusBadRequest)
+		c.Status(http.StatusNotFound)
 		return
 	}
 
@@ -43,26 +51,29 @@ func (h *Handler) RenderStudent(c *gin.Context) {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
+
 	c.HTML(http.StatusOK, "student.html", student)
 }
 
 func (h *Handler) AddGrade(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.Status(http.StatusBadRequest)
+		c.Status(http.StatusNotFound)
 		return
 	}
 
 	score, err := strconv.ParseFloat(c.PostForm("Score"), 32)
 	if err != nil {
-		c.Status(http.StatusBadRequest)
+		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
-	g := grades.Grade{
+
+	g := dto.Grade{
 		Title: c.PostForm("Title"),
-		Type:  grades.GradeType(c.PostForm("Type")),
+		Type:  c.PostForm("Type"),
 		Score: float32(score),
 	}
+
 	if err := h.service.AddGrade(id, g); err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return

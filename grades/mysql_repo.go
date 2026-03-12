@@ -93,7 +93,7 @@ func (r *MySQLStudentRepo) GetByID(id int) (*Student, error) {
 	return res, nil
 }
 
-func (r *MySQLStudentRepo) Create(student *Student) (*Student, error) {
+func (r *MySQLStudentRepo) Create(student Student) (*Student, error) {
 	model := StudentModel{
 		FirstName: student.FirstName,
 		LastName:  student.LastName,
@@ -110,7 +110,7 @@ func (r *MySQLStudentRepo) Create(student *Student) (*Student, error) {
 	}, nil
 }
 
-func (r *MySQLStudentRepo) Update(id int, student *Student) (*Student, error) {
+func (r *MySQLStudentRepo) Update(id int, student Student) (*Student, error) {
 	var model StudentModel
 	if err := r.db.First(&model, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {

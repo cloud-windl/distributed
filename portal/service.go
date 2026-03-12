@@ -2,7 +2,7 @@ package portal
 
 import (
 	"bytes"
-	"distributed/grades"
+	"distributed/dto"
 	"distributed/pkg/response"
 	"encoding/json"
 	"fmt"
@@ -15,52 +15,41 @@ func NewService() *Service {
 	return &Service{}
 }
 
-type studentsResponse struct {
-	Code int             `json:"code"`
-	Msg  string          `json:"msg"`
-	Data grades.Students `json:"data"`
-}
-
-type studentResponse struct {
-	Code int            `json:"code"`
-	Msg  string         `json:"msg"`
-	Data grades.Student `json:"data"`
-}
-
-func (s *Service) GetStudents() (grades.Students, error) {
+func (s *Service) GetStudents(page, pageSize int, keyword string) (dto.StudentListResponse, error) {
 	var resp response.ClientResponse
-	var result grades.Students
+	var result dto.StudentListResponse
 
 	serviceURL := "http://localhost:6000"
+	url := fmt.Sprintf("%s/students?page=%d&page_size=%d&keyword=%s", serviceURL, page, pageSize, keyword)
 
-	res, err := http.Get(serviceURL + "/students")
+	res, err := http.Get(url)
 	if err != nil {
-		return nil, err
+		return result, err
 	}
 	defer res.Body.Close()
 
 	if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
-		return nil, err
+		return result, err
 	}
 
 	if resp.Code != 0 {
-		return nil, fmt.Errorf(resp.Msg)
+		return result, fmt.Errorf(resp.Msg)
 	}
 
 	if len(resp.Data) == 0 {
-		return nil, fmt.Errorf("empty response data")
+		return result, fmt.Errorf("empty response data")
 	}
 
 	if err := json.Unmarshal(resp.Data, &result); err != nil {
-		return nil, err
+		return result, err
 	}
 
 	return result, nil
 }
 
-func (s *Service) GetStudentByID(id int) (grades.Student, error) {
+func (s *Service) GetStudentByID(id int) (dto.Student, error) {
 	var resp response.ClientResponse
-	var result grades.Student
+	var result dto.Student
 
 	serviceURL := "http://localhost:6000"
 
@@ -89,7 +78,7 @@ func (s *Service) GetStudentByID(id int) (grades.Student, error) {
 	return result, nil
 }
 
-func (s *Service) AddGrade(id int, g grades.Grade) error {
+func (s *Service) AddGrade(id int, g dto.Grade) error {
 	var resp response.ClientResponse
 
 	data, err := json.Marshal(g)
