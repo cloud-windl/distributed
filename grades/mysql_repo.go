@@ -30,6 +30,9 @@ func (r *MySQLStudentRepo) GetAll(page, pageSize int, keyword string) (Students,
 	}
 
 	if page <= 0 {
+		page = 1
+	}
+	if pageSize <= 0 {
 		pageSize = 10
 	}
 
@@ -131,10 +134,15 @@ func (r *MySQLStudentRepo) Update(id int, student *Student) (*Student, error) {
 }
 
 func (r *MySQLStudentRepo) Delete(id int) error {
-	if err := r.db.Delete(&StudentModel{}, id).Error; err != nil {
-		return err
-	}
-	return nil
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("student_id = ?", id).Delete(&GradeModel{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Delete(&StudentModel{}, id).Error; err != nil {
+			return err
+		}
+		return nil
+	})
 }
 
 func (r *MySQLStudentRepo) GetGradesByStudentID(studentID int) ([]Grade, error) {

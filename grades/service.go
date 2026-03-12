@@ -3,8 +3,8 @@ package grades
 type StudentService interface {
 	GetAllStudents(page, pageSize int, keyword string) (Students, int64, error)
 	GetStudentByID(id int) (*Student, error)
-	CreateStudent(student Student) (*Student, error)
-	UpdateStudent(id int, student Student) (*Student, error)
+	CreateStudent(student *Student) (*Student, error)
+	UpdateStudent(id int, student *Student) (*Student, error)
 	DeleteStudent(id int) error
 
 	GetGradesByStudentID(studentID int) ([]Grade, error)
@@ -13,14 +13,13 @@ type StudentService interface {
 	UpdateGrade(id int, grade Grade) (*Grade, error)
 	DeleteGrade(id int) error
 }
+
 type Service struct {
 	repo StudentRepo
 }
 
 func NewService(repo StudentRepo) StudentService {
-	return &Service{
-		repo: repo,
-	}
+	return &Service{repo: repo}
 }
 
 func (s *Service) GetAllStudents(page, pageSize int, keyword string) (Students, int64, error) {
@@ -31,12 +30,12 @@ func (s *Service) GetStudentByID(id int) (*Student, error) {
 	return s.repo.GetByID(id)
 }
 
-func (s *Service) CreateStudent(student Student) (*Student, error) {
-	return s.repo.Create(&student)
+func (s *Service) CreateStudent(student *Student) (*Student, error) {
+	return s.repo.Create(student)
 }
 
-func (s *Service) UpdateStudent(id int, student Student) (*Student, error) {
-	return s.repo.Update(id, &student)
+func (s *Service) UpdateStudent(id int, student *Student) (*Student, error) {
+	return s.repo.Update(id, student)
 }
 
 func (s *Service) DeleteStudent(id int) error {

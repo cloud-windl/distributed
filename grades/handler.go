@@ -20,7 +20,7 @@ func NewHandler(service StudentService) *Handler {
 
 func (h *Handler) GetAllStudents(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
 	keyword := c.Query("keyword")
 
 	students, total, err := h.service.GetAllStudents(page, pageSize, keyword)
@@ -30,10 +30,10 @@ func (h *Handler) GetAllStudents(c *gin.Context) {
 	}
 
 	response.OK(c, gin.H{
-		"list":     students,
-		"total":    total,
-		"page":     page,
-		"pageSize": pageSize,
+		"list":      students,
+		"total":     total,
+		"page":      page,
+		"page_size": pageSize,
 	})
 }
 
@@ -60,7 +60,7 @@ func (h *Handler) CreateStudent(c *gin.Context) {
 		return
 	}
 
-	res, err := h.service.CreateStudent(student)
+	res, err := h.service.CreateStudent(&student)
 	if err != nil {
 		response.Error(c, errno.CodeCreateStudentFailed, err.Error())
 		return
@@ -82,7 +82,7 @@ func (h *Handler) UpdateStudent(c *gin.Context) {
 		return
 	}
 
-	res, err := h.service.UpdateStudent(id, student)
+	res, err := h.service.UpdateStudent(id, &student)
 	if err != nil {
 		response.Error(c, errno.CodeUpdateStudentFailed, err.Error())
 		return

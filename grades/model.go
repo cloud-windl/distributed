@@ -6,7 +6,7 @@ type StudentModel struct {
 	ID        int64        `gorm:"primaryKey;autoIncrement"`
 	FirstName string       `gorm:"type:varchar(64);not null"`
 	LastName  string       `gorm:"type:varchar(64);not null"`
-	Grades    []GradeModel `gorm:"foreignKey:StudentID"`
+	Grades    []GradeModel `gorm:"foreignKey:StudentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

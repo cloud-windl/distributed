@@ -8,7 +8,7 @@ type StudentRepo interface {
 	Delete(id int) error
 
 	GetGradesByStudentID(studentID int) ([]Grade, error)
-	AddGrade(id int, grade Grade) error
+	AddGrade(studentID int, grade Grade) error
 
 	GetGradeByID(id int) (*Grade, error)
 	UpdateGrade(id int, grade Grade) (*Grade, error)
