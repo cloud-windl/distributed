@@ -29,6 +29,21 @@ func main() {
 	port := config.GetEnv("PORTAL_PORT", "5000")
 	addr := ":" + port
 
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: r,
+	}
+
+	// 先启动 HTTP 服务
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("portal listen error: %v", err)
+		}
+	}()
+
+	// 给自己一点时间，确保 /healthz 和 /registry/updates 已经能接收请求
+	time.Sleep(2 * time.Second)
+
 	reg := portal.BuildRegistration()
 	if err := portal.RegisterToRegistry(reg); err != nil {
 		log.Printf("register portal to registry failed: %v", err)
@@ -36,30 +51,13 @@ func main() {
 		log.Printf("portal registered to registry: %s", reg.ServiceURL)
 	}
 
-	go func() {
-		for i := 0; i < 10; i++ {
-			logProvider, err := registry.GetProvider(registry.LogService)
-			if err == nil {
-				mylog.SetClientLogger(logProvider, registry.PortalService)
-				log.Println("portal connected to log service")
-				return
-			}
-			log.Printf("portal waiting for log service... attempt=%d err=%v", i+1, err)
-			time.Sleep(1 * time.Second)
-		}
-		log.Println("portal could not connect to log service after retries")
-	}()
-
-	srv := &http.Server{
-		Addr:    addr,
-		Handler: r,
+	// 注册完成后，再尝试连接 log service
+	if logProvider, err := registry.GetProvider(registry.LogService); err == nil {
+		mylog.SetClientLogger(logProvider, registry.PortalService)
+		log.Println("portal connected to log service")
+	} else {
+		log.Printf("portal failed to connect log service: %v", err)
 	}
-
-	go func() {
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("portal listen error: %v", err)
-		}
-	}()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)

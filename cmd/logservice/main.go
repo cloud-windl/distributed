@@ -28,23 +28,26 @@ func main() {
 	port := config.GetEnv("LOG_PORT", "4000")
 	addr := ":" + port
 
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: r,
+	}
+
+	// 先启动 HTTP 服务
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("log service listen error: %v", err)
+		}
+	}()
+
+	time.Sleep(2 * time.Second)
+
 	reg := mylog.BuildRegistration()
 	if err := mylog.RegisterToRegistry(reg); err != nil {
 		log.Printf("register log service to registry failed: %v", err)
 	} else {
 		log.Printf("log service registered to registry: %s", reg.ServiceURL)
 	}
-
-	srv := &http.Server{
-		Addr:    addr,
-		Handler: r,
-	}
-
-	go func() {
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("log service listen error: %v", err)
-		}
-	}()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)

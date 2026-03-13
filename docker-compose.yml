@@ -14,6 +14,84 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p123456"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  registry:
+    build:
+      context: .
+      dockerfile: Dockerfile.registry
+    container_name: distributed-registry
+    restart: always
+    environment:
+      REGISTRY_PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  logservice:
+    build:
+      context: .
+      dockerfile: Dockerfile.log
+    container_name: distributed-log
+    restart: always
+    environment:
+      LOG_PORT: 4000
+      LOG_PUBLIC_URL: http://logservice:4000
+      REGISTRY_URL: http://registry:3000
+    ports:
+      - "4000:4000"
+    depends_on:
+      - registry
+
+  grades:
+    build:
+      context: .
+      dockerfile: Dockerfile.grades
+    container_name: distributed-grades
+    restart: always
+    environment:
+      GRADES_PORT: 6000
+      GRADES_PUBLIC_URL: http://grades:6000
+
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: app
+      MYSQL_PASSWORD: 123456
+      MYSQL_DB: distributed
+
+      REGISTRY_URL: http://registry:3000
+    ports:
+      - "6000:6000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      registry:
+        condition: service_started
+      logservice:
+        condition: service_started
+
+  portal:
+    build:
+      context: .
+      dockerfile: Dockerfile.portal
+    container_name: distributed-portal
+    restart: always
+    environment:
+      PORTAL_PORT: 5000
+      PORTAL_PUBLIC_URL: http://portal:5000
+      REGISTRY_URL: http://registry:3000
+    ports:
+      - "5000:5000"
+    depends_on:
+      - registry
+      - grades
+      - logservice
 
 volumes:
   mysql_data:

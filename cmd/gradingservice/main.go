@@ -51,6 +51,20 @@ func main() {
 	port := config.GetEnv("GRADES_PORT", "6000")
 	addr := ":" + port
 
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: r,
+	}
+
+	// 先启动 HTTP 服务
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("grades service listen error: %v", err)
+		}
+	}()
+
+	time.Sleep(2 * time.Second)
+
 	reg := grades.BuildRegistration()
 	if err := grades.RegisterToRegistry(reg); err != nil {
 		log.Printf("register to registry failed: %v", err)
@@ -58,30 +72,12 @@ func main() {
 		log.Printf("registered service to registry: %s", reg.ServiceURL)
 	}
 
-	go func() {
-		for i := 0; i < 10; i++ {
-			logProvider, err := registry.GetProvider(registry.LogService)
-			if err == nil {
-				mylog.SetClientLogger(logProvider, registry.GradingService)
-				log.Println("grades connected to log service")
-				return
-			}
-			log.Printf("grades waiting for log service... attempt=%d err=%v", i+1, err)
-			time.Sleep(1 * time.Second)
-		}
-		log.Println("grades could not connect to log service after retries")
-	}()
-
-	srv := &http.Server{
-		Addr:    addr,
-		Handler: r,
+	if logProvider, err := registry.GetProvider(registry.LogService); err == nil {
+		mylog.SetClientLogger(logProvider, registry.GradingService)
+		log.Println("grades connected to log service")
+	} else {
+		log.Printf("grades failed to connect log service: %v", err)
 	}
-
-	go func() {
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("grades service listen error: %v", err)
-		}
-	}()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
